@@ -1,0 +1,16 @@
+{
+  "name": "@buildora/console",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file ../../.env.local src/index.ts",
+    "build": "rimraf dist && tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@buildora/shared": "workspace:*"
+  }
+}
