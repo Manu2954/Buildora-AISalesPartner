@@ -19,4 +19,5 @@ pnpm-debug.log*
 # Editors
 .DS_Store
 .idea
+.vscode/
 *.swp

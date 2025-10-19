@@ -8,9 +8,14 @@
     "build": "rimraf dist && tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "templates": "tsx src/templates/register.ts"
   },
   "dependencies": {
-    "@buildora/shared": "workspace:*"
+    "@buildora/shared": "workspace:*",
+    "bullmq": "^4.14.1",
+    "express": "^4.19.2",
+    "ioredis": "^5.4.1",
+    "@types/express": "^4.17.21"
   }
 }

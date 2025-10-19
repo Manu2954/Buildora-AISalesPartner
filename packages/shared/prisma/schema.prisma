@@ -26,6 +26,23 @@ model Lead {
   conversations Conversation[]
   quotes        Quote[]
   project       Project?      @relation("LeadProject")
+  journey       LeadJourney?
+}
+
+model LeadJourney {
+  id               String       @id @default(uuid())
+  leadId           String       @unique
+  state            JourneyState @default(NEW)
+  nextActionAt     DateTime?
+  lastActionAt     DateTime?
+  lastUserActivityAt DateTime?
+  attempts         Int          @default(0)
+  lastError        String?
+  meta             Json?
+  manualSuppressedUntil DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  Lead             Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
 }
 
 model Contact {
@@ -111,4 +128,20 @@ model McpAudit {
   result Json?
   at     DateTime @default(now())
   actor  String
+}
+
+enum JourneyState {
+  NEW
+  CONSENT_CHECK
+  READY
+  INTRO_SENT
+  NUDGE_1
+  NUDGE_2
+  PAUSE
+  BOOKING
+  QUALIFIED
+  QUOTE_SENT
+  WON
+  LOST
+  HUMAN_HANDOFF
 }

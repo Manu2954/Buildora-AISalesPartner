@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CalendarBookSlot",
+  "input": {
+    "type": "object",
+    "properties": {
+      "leadId": { "type": "string", "minLength": 1 },
+      "slotIso": { "type": "string", "format": "date-time" },
+      "location": { "type": "string" },
+      "durationMin": { "type": "integer", "minimum": 15 }
+    },
+    "required": ["leadId", "slotIso"],
+    "additionalProperties": false
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "eventId": { "type": "string" },
+      "summary": { "type": "string" },
+      "start": { "type": "string" },
+      "end": { "type": "string" },
+      "htmlLink": { "type": ["string", "null"] },
+      "hangoutLink": { "type": ["string", "null"] }
+    },
+    "required": ["eventId", "summary", "start", "end", "htmlLink", "hangoutLink"],
+    "additionalProperties": false
+  }
+}

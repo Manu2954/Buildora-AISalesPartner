@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ConsentCheck",
+  "input": {
+    "type": "object",
+    "properties": {
+      "contactId": { "type": "string", "minLength": 1 },
+      "channel": { "type": "string", "minLength": 1 }
+    },
+    "required": ["contactId", "channel"],
+    "additionalProperties": false
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "status": { "type": "string" },
+      "recordedAt": { "type": ["string", "null"] }
+    },
+    "required": ["status", "recordedAt"],
+    "additionalProperties": false
+  }
+}

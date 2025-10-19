@@ -1,0 +1,29 @@
+{
+  "name": "buildora_intro_v2",
+  "category": "MARKETING",
+  "allow_category_change": false,
+  "language": "en",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "Hi {{1}}, thanks for reaching Buildora! I can help you plan your renovation, share design ideas, and line up the next visit. What would you like to do?"
+    },
+    {
+      "type": "BUTTONS",
+      "buttons": [
+        {
+          "type": "QUICK_REPLY",
+          "text": "Book a visit"
+        },
+        {
+          "type": "QUICK_REPLY",
+          "text": "See design ideas"
+        }
+      ]
+    },
+    {
+      "type": "FOOTER",
+      "text": "Powered by Buildora Concierge"
+    }
+  ]
+}

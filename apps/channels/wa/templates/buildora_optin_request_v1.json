@@ -1,0 +1,29 @@
+{
+  "name": "buildora_optin_request_v1",
+  "category": "MARKETING",
+  "allow_category_change": false,
+  "language": "en",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "Hi {{1}}, this is the Buildora team. Can we keep you posted on design inspiration, offers, and project updates over WhatsApp?"
+    },
+    {
+      "type": "BUTTONS",
+      "buttons": [
+        {
+          "type": "QUICK_REPLY",
+          "text": "Yes, keep me posted"
+        },
+        {
+          "type": "QUICK_REPLY",
+          "text": "Not right now"
+        }
+      ]
+    },
+    {
+      "type": "FOOTER",
+      "text": "You can opt out anytime."
+    }
+  ]
+}

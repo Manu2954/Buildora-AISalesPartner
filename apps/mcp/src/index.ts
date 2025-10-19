@@ -1,19 +1,25 @@
-import http from 'node:http';
+import type { Server } from 'node:http';
 
 import { env } from '@buildora/shared';
 
-const PORT = Number(process.env.PORT ?? 4002);
+import { startMcpServer } from './server.js';
 
-const server = http.createServer((_req, res) => {
-  res.statusCode = 200;
-  res.end('mcp ok');
-});
+const PORT = Number(process.env.PORT ?? 3005);
 
-server.listen(PORT, () => {
-  console.log(`[mcp] listening on :${PORT} (tz: ${env.TIMEZONE})`);
-});
+let server: Server;
+
+try {
+  server = await startMcpServer(PORT);
+} catch (error) {
+  console.error('[mcp] Failed to start server', error);
+  process.exit(1);
+  throw error;
+}
+
+console.log(`[mcp] MCP server listening on :${PORT} (tz: ${env.TIMEZONE})`);
 
 const shutdown = () => {
+  console.log('[mcp] Shutting down MCP server');
   server.close(() => process.exit(0));
 };
 

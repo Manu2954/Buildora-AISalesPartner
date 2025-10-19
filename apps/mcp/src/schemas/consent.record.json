@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ConsentRecord",
+  "input": {
+    "type": "object",
+    "properties": {
+      "contactId": { "type": "string", "minLength": 1 },
+      "channel": { "type": "string", "minLength": 1 },
+      "status": {
+        "type": "string",
+        "enum": ["granted", "revoked", "unknown"]
+      },
+      "proof": {
+        "type": ["object", "null"],
+        "additionalProperties": true
+      }
+    },
+    "required": ["contactId", "channel", "status"],
+    "additionalProperties": false
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "consentId": { "type": "string" },
+      "status": { "type": "string" },
+      "recordedAt": { "type": "string" }
+    },
+    "required": ["consentId", "status", "recordedAt"],
+    "additionalProperties": false
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "buildora_quote_followup_v1",
+  "category": "UTILITY",
+  "allow_category_change": false,
+  "language": "en",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "Hi {{1}}, we have attached the updated Buildora quote for your project. Let me know if you'd like to walk through the details or schedule a site visit to finalise things."
+    },
+    {
+      "type": "FOOTER",
+      "text": "Reply here to connect with the Buildora team."
+    }
+  ]
+}

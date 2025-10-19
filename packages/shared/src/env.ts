@@ -36,7 +36,21 @@ const envSchema = z.object({
   WA_TOKEN: z.preprocess(preprocessOptional, z.string().optional()),
   WA_WHATSAPP_BUSINESS_ACCOUNT_ID: z.preprocess(preprocessOptional, z.string().optional()),
   WA_VERIFY_TOKEN: z.preprocess(preprocessOptional, z.string().optional()),
+  WA_APP_SECRET: z.preprocess(preprocessOptional, z.string()),
+  WA_TEMPLATE_INTRO: z.preprocess(preprocessOptional, z.string().optional()),
+  WA_TEMPLATE_NUDGE1: z.preprocess(preprocessOptional, z.string().optional()),
+  WA_TEMPLATE_NUDGE2: z.preprocess(preprocessOptional, z.string().optional()),
+  WA_TEMPLATE_LANGUAGE: z.preprocess(
+    preprocessOptional,
+    z
+      .string()
+      .regex(/^[a-z]{2}(-[A-Z]{2})?$/, { message: 'Language code must be BCP47 (e.g. en or en-US)' })
+      .default('en')
+  ),
   WEBHOOK_SECRET: z.preprocess(preprocessOptional, z.string()),
+  MCP_SERVER_URL: z.preprocess(preprocessOptional, z.string().url().default('http://localhost:3005')),
+  OPENAI_API_KEY: z.preprocess(preprocessOptional, z.string()),
+  OPENAI_MODEL: z.preprocess(preprocessOptional, z.string().default('gpt-4o-mini')),
   GCAL_CREDENTIALS_JSON_BASE64: z.preprocess(preprocessOptional, z.string().optional()),
   GCAL_CALENDAR_ID: z.preprocess(preprocessOptional, z.string()),
   S3_ENDPOINT: z.preprocess(preprocessOptional, z.string().url().optional()),

@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CalendarOfferSlots",
+  "input": {
+    "type": "object",
+    "properties": {
+      "leadId": { "type": "string", "minLength": 1 },
+      "durationMin": { "type": "integer", "minimum": 15 }
+    },
+    "required": ["leadId", "durationMin"],
+    "additionalProperties": false
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "slots": {
+        "type": "array",
+        "items": { "type": "string", "format": "date-time" }
+      }
+    },
+    "required": ["slots"],
+    "additionalProperties": false
+  }
+}

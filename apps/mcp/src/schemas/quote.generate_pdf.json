@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QuoteGeneratePdf",
+  "input": {
+    "type": "object",
+    "properties": {
+      "leadId": { "type": "string", "minLength": 1 },
+      "packageKey": { "type": "string", "minLength": 1 },
+      "amountLow": { "type": "number" },
+      "amountHigh": { "type": "number" }
+    },
+    "required": ["leadId", "packageKey", "amountLow", "amountHigh"],
+    "additionalProperties": false
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "url": { "type": "string", "format": "uri" },
+      "key": { "type": "string" }
+    },
+    "required": ["url", "key"],
+    "additionalProperties": false
+  }
+}

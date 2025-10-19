@@ -10,7 +10,8 @@
     "dev:all": "pnpm -r --parallel dev",
     "build:all": "pnpm -r build",
     "lint": "pnpm -r lint",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "test": "vitest"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.21.0",
@@ -23,10 +24,16 @@
     "prisma": "^5.12.1",
     "typescript": "^5.4.5",
     "tsx": "^4.7.1",
+    "vitest": "^1.5.0",
+    "@types/pdfkit": "^0.13.2",
     "dotenv-cli": "^7.2.1",
     "rimraf": "^5.0.5"
   },
   "prisma": {
     "schema": "packages/shared/prisma/schema.prisma"
+  },
+  "dependencies": {
+    "pino": "^8.19.0",
+    "prom-client": "^15.1.0"
   }
 }

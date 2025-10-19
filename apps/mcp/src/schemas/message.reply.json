@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WhatsAppReply",
+  "input": {
+    "type": "object",
+    "properties": {
+      "contactId": { "type": "string", "minLength": 1 },
+      "leadId": { "type": "string", "minLength": 1 },
+      "phone": { "type": "string", "minLength": 5 },
+      "text": { "type": "string", "minLength": 1 },
+      "mediaUrl": { "type": "string", "format": "uri" }
+    },
+    "required": ["phone", "text"],
+    "additionalProperties": false
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "conversationId": { "type": ["string", "null"] },
+      "messageId": { "type": "string" },
+      "status": { "type": ["string", "null"] }
+    },
+    "required": ["conversationId", "messageId", "status"],
+    "additionalProperties": false
+  }
+}
