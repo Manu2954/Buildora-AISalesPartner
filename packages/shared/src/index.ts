@@ -7,3 +7,5 @@ export * from './guardrails.js';
 export * from './webhookVerify.js';
 export * from './log.js';
 export * from './metrics.js';
+export * from './http.js';
+export * from './errors.js';

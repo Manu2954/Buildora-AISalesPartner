@@ -50,4 +50,24 @@ describe('Guardrails', () => {
     expect(fifth.allowed).toBe(false);
     expect(fifth.reason).toMatch(/10-day/);
   });
+
+  it('evaluates consent decisions consistently', async () => {
+    const { evaluateConsent } = await import('../src/guardrails.js');
+
+    expect(
+      evaluateConsent({ whatsappOptIn: true, dndFlag: false, status: 'revoked' }).allowed
+    ).toBe(true);
+
+    const revoked = evaluateConsent({ whatsappOptIn: false, dndFlag: false, status: 'revoked' });
+    expect(revoked.allowed).toBe(false);
+    expect(revoked.reason).toMatch(/revoked/i);
+
+    const dnd = evaluateConsent({ whatsappOptIn: true, dndFlag: true, status: 'granted' });
+    expect(dnd.allowed).toBe(false);
+    expect(dnd.reason).toMatch(/Do Not Disturb/i);
+
+    const unknown = evaluateConsent({ whatsappOptIn: false, dndFlag: false, status: 'unknown' });
+    expect(unknown.allowed).toBe(false);
+    expect(unknown.reason).toMatch(/unknown/i);
+  });
 });

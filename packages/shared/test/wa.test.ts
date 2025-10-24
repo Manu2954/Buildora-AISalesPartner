@@ -15,10 +15,7 @@ describe('WhatsApp client', () => {
   it('sends template messages and parses response', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({
-        meta: { conversation_id: 'conv-1' },
-        messages: [{ id: 'wamid.HBgL', message_status: 'accepted' }]
-      })
+      text: async () => JSON.stringify({ sid: 'SM1234567890', status: 'accepted' })
     });
 
     const { sendTemplateWA } = await import('../src/wa.js');
@@ -30,14 +27,22 @@ describe('WhatsApp client', () => {
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      'https://graph.facebook.com/v17.0/123456789/messages',
+      'https://api.twilio.com/2010-04-01/Accounts/ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/Messages.json',
       expect.objectContaining({
-        method: 'POST'
+        method: 'POST',
+        headers: expect.objectContaining({
+          Authorization: expect.stringMatching(/^Basic /),
+          'Content-Type': 'application/x-www-form-urlencoded'
+        })
       })
     );
+    const [, request] = fetchMock.mock.calls[0];
+    const params = new URLSearchParams(request.body as string);
+    expect(params.get('ContentSid')).toBe('HX1234567890ABCDEF1234567890ABCDEF');
+    expect(JSON.parse(params.get('ContentVariables') ?? '{}')).toEqual({ '1': 'Buildora' });
     expect(result).toEqual({
-      conversationId: 'conv-1',
-      messageId: 'wamid.HBgL',
+      conversationId: null,
+      messageId: 'SM1234567890',
       status: 'accepted'
     });
   });
@@ -45,9 +50,7 @@ describe('WhatsApp client', () => {
   it('sends text replies when no mediaUrl provided', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({
-        messages: [{ id: 'wamid.2', message_status: 'sent', conversation: { id: 'conv-2' } }]
-      })
+      text: async () => JSON.stringify({ sid: 'SM222', status: 'sent' })
     });
 
     const { replyWA } = await import('../src/wa.js');
@@ -58,10 +61,11 @@ describe('WhatsApp client', () => {
 
     expect(fetchMock).toHaveBeenCalled();
     const [, request] = fetchMock.mock.calls[0];
-    const parsedBody = JSON.parse(request.body as string);
-    expect(parsedBody.type).toBe('text');
-    expect(result.messageId).toBe('wamid.2');
-    expect(result.conversationId).toBe('conv-2');
+    const params = new URLSearchParams(request.body as string);
+    expect(params.get('Body')).toBe('Hello from Buildora');
+    expect(params.get('MediaUrl')).toBeNull();
+    expect(result.messageId).toBe('SM222');
+    expect(result.conversationId).toBeNull();
     expect(result.status).toBe('sent');
   });
 });

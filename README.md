@@ -31,9 +31,9 @@ Each app (`apps/*`) exposes `dev`, `build`, `start`, `lint`, and `typecheck` scr
 - `infra/docker`
 
 ### WhatsApp Channel
-- `apps/channels/wa` serves `/webhook` for Meta (WhatsApp) callbacks, requiring `WA_VERIFY_TOKEN` and `WA_APP_SECRET`.
-- On inbound messages it upserts leads, contacts, conversations, stores WhatsApp metadata, and enqueues `dialogue` jobs in Redis.
-- Template JSONs live under `apps/channels/wa/templates`; use `pnpm --filter @buildora/channel-wa templates list` or `... templates push <file>` to manage WhatsApp templates via Graph API.
+- Outbound messaging now goes through Twilio's WhatsApp API. Provide `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, and either `TWILIO_WHATSAPP_FROM` or `TWILIO_MESSAGING_SERVICE_SID`. Optional `TWILIO_TEMPLATE_MAP` can map template names (and languages) to Twilio Content SIDs or bodies.
+- `apps/channels/wa` still exposes `/webhook` for inbound callbacks. If you continue to receive Meta-originated webhooks configure `WA_VERIFY_TOKEN` and `WA_APP_SECRET` for signature verification.
+- Template JSONs under `apps/channels/wa/templates` remain available for reference, but proactive sends expect Twilio content entries defined via `TWILIO_TEMPLATE_MAP`.
 
 ### Assistant Worker
 - `apps/assistant` runs a BullMQ worker that consumes `dialogue` jobs and orchestrates LLM-driven replies.

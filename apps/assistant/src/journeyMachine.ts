@@ -6,7 +6,9 @@ import {
   prisma,
   createLogger,
   messagesOutboundTotal,
-  errorRate
+  errorRate,
+  AppError,
+  evaluateConsent
 } from '@buildora/shared';
 
 import { McpClient } from './mcpClient.js';
@@ -91,7 +93,7 @@ export async function processJourney(
   ]);
 
   if (!lead) {
-    throw new Error(`Lead ${leadId} not found`);
+    throw new AppError('LEAD_NOT_FOUND', `Lead ${leadId} not found`, { status: 404 });
   }
 
   const journey =
@@ -445,10 +447,16 @@ async function attemptTemplateSend({
   }
 
   const consentStatus = await getConsentStatus(contact.id);
-  if (consentStatus !== 'granted') {
+  const consentDecision = evaluateConsent({
+    whatsappOptIn: contact.whatsappOptIn,
+    dndFlag: contact.dndFlag,
+    status: consentStatus
+  });
+
+  if (!consentDecision.allowed) {
     return allowConsentFallback
       ? { status: 'consent_required' }
-      : { status: 'skipped', reason: `Consent status ${consentStatus}` };
+      : { status: 'skipped', reason: consentDecision.reason ?? `Consent status ${consentStatus}` };
   }
 
   try {

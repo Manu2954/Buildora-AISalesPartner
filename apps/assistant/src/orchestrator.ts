@@ -191,7 +191,7 @@ async function sendFinalReply(
   log: Logger = createLogger({ component: 'assistant' })
 ): Promise<void> {
   if (!context.contact || !context.contact.phone) {
-    throw new Error('Cannot send reply: contact phone missing');
+    throw new AppError('CONTACT_PHONE_MISSING', 'Cannot send reply: contact phone missing', { status: 400 });
   }
 
   await mcpClient.callTool('message.reply', {

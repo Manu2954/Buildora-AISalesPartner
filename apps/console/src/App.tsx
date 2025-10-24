@@ -222,15 +222,39 @@ export default function App() {
 }
 
 async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    ...init
-  });
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Request failed (${response.status}): ${text}`);
+  const attempts = Number(import.meta.env.VITE_HTTP_RETRY_ATTEMPTS ?? 3);
+  const timeoutMs = Number(import.meta.env.VITE_HTTP_TIMEOUT_MS ?? 10000);
+  const backoffMs = Number(import.meta.env.VITE_HTTP_RETRY_BACKOFF_MS ?? 500);
+
+  let attempt = 0;
+  while (attempt < attempts) {
+    attempt += 1;
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(`${API_BASE}${path}`, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        signal: controller.signal,
+        ...init
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Request failed (${response.status}): ${text}`);
+      }
+
+      return (await response.json()) as T;
+    } catch (error) {
+      if (attempt >= attempts) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, backoffMs * attempt));
+    } finally {
+      window.clearTimeout(timer);
+    }
   }
-  return (await response.json()) as T;
+
+  throw new Error('Request failed');
 }

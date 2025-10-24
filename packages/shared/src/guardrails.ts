@@ -16,6 +16,11 @@ type RateLimitResult = {
   remainingTenDay: number;
 };
 
+export type ConsentDecision = {
+  allowed: boolean;
+  reason?: string;
+};
+
 const tokenStore = new Map<string, number[]>();
 
 export function guardQuietHours(now: Date = new Date()): boolean {
@@ -53,6 +58,28 @@ export function rateLimit(key: string, now: Date = new Date()): RateLimitResult 
     remainingDaily: Math.max(0, DAILY_LIMIT - (dailyCount + 1)),
     remainingTenDay: Math.max(0, TEN_DAY_LIMIT - updated.length)
   };
+}
+
+export function evaluateConsent(context: {
+  whatsappOptIn: boolean;
+  dndFlag: boolean;
+  status?: string | null;
+}): ConsentDecision {
+  if (context.dndFlag) {
+    return { allowed: false, reason: 'Contact is flagged as Do Not Disturb' };
+  }
+  if (context.whatsappOptIn) {
+    return { allowed: true };
+  }
+
+  const status = context.status ?? 'unknown';
+  if (status === 'granted') {
+    return { allowed: true };
+  }
+  if (status === 'revoked') {
+    return { allowed: false, reason: 'Consent revoked' };
+  }
+  return { allowed: false, reason: 'Consent unknown' };
 }
 
 export const __internal = {

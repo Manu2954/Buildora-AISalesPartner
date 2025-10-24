@@ -22,3 +22,10 @@ export function createLogger(
 }
 
 export type Logger = ReturnType<typeof createLogger>;
+
+export function redactPhone(phone: string | null | undefined): string {
+  if (!phone) return '***';
+  const digits = phone.replace(/\D/g, '');
+  const tail = digits.slice(-4).padStart(4, '*');
+  return `***${tail}`;
+}

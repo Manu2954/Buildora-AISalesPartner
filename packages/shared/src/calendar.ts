@@ -3,6 +3,7 @@ import { createPrivateKey, createSign } from 'node:crypto';
 import { DateTime } from 'luxon';
 
 import { env } from './env.js';
+import { AppError } from './errors.js';
 
 const GCAL_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 const GCAL_SCOPE = 'https://www.googleapis.com/auth/calendar';
@@ -55,10 +56,10 @@ let cachedToken: { token: string; expiresAt: number } | null = null;
 
 export async function offerSlots({ leadId, durationMin }: OfferSlotsInput): Promise<string[]> {
   if (!env.GCAL_CALENDAR_ID) {
-    throw new Error('GCAL_CALENDAR_ID must be configured to offer slots');
+    throw new AppError('GCAL_CALENDAR_ID_MISSING', 'GCAL_CALENDAR_ID must be configured to offer slots');
   }
   if (durationMin <= 0) {
-    throw new Error('durationMin must be positive');
+    throw new AppError('INVALID_DURATION', 'durationMin must be positive', { status: 400 });
   }
 
   const nowIst = DateTime.now().setZone(IST_ZONE);
@@ -108,12 +109,12 @@ export async function bookSlot({
   durationMin = 60
 }: BookSlotInput): Promise<BookSlotResult> {
   if (!env.GCAL_CALENDAR_ID) {
-    throw new Error('GCAL_CALENDAR_ID must be configured to book slots');
+    throw new AppError('GCAL_CALENDAR_ID_MISSING', 'GCAL_CALENDAR_ID must be configured to book slots');
   }
 
   const slotStart = DateTime.fromISO(slotIso, { zone: IST_ZONE });
   if (!slotStart.isValid) {
-    throw new Error('slotIso must be a valid ISO date string');
+    throw new AppError('INVALID_SLOT', 'slotIso must be a valid ISO date string', { status: 400 });
   }
 
   const slotEnd = slotStart.plus({ minutes: durationMin });
@@ -148,7 +149,9 @@ export async function bookSlot({
 
   if (!response.ok) {
     const errorBody = await response.text();
-    throw new Error(`Failed to create calendar event: ${response.status} ${errorBody}`);
+    throw new AppError('GCAL_CREATE_EVENT_FAILED', `Failed to create calendar event: ${response.status} ${errorBody}`, {
+      status: response.status
+    });
   }
 
   const payload = (await response.json()) as GoogleCalendarEvent;
@@ -183,7 +186,9 @@ async function listEvents(timeMin: string, timeMax: string): Promise<GoogleCalen
 
   if (!response.ok) {
     const errorBody = await response.text();
-    throw new Error(`Failed to fetch calendar events: ${response.status} ${errorBody}`);
+    throw new AppError('GCAL_FETCH_EVENTS_FAILED', `Failed to fetch calendar events: ${response.status} ${errorBody}`, {
+      status: response.status
+    });
   }
 
   const payload = (await response.json()) as { items?: GoogleCalendarEvent[] };
@@ -220,7 +225,7 @@ function ensureMinimumSlots(slots: string[]): string[] {
     return slots.slice(0, Math.min(MAX_SLOTS, slots.length));
   }
   if (slots.length === 0) {
-    throw new Error('No available slots within the configured window');
+    throw new AppError('NO_SLOTS_AVAILABLE', 'No available slots within the configured window');
   }
   const lastSlot = DateTime.fromISO(slots[slots.length - 1], { zone: IST_ZONE });
   const paddedSlots = [...slots];
@@ -275,7 +280,9 @@ async function getGoogleAccessToken(): Promise<string> {
 
   if (!response.ok) {
     const errorBody = await response.text();
-    throw new Error(`Failed to exchange JWT for access token: ${response.status} ${errorBody}`);
+    throw new AppError('GCAL_AUTH_FAILED', `Failed to exchange JWT for access token: ${response.status} ${errorBody}`, {
+      status: response.status
+    });
   }
 
   const payload = (await response.json()) as { access_token: string; expires_in?: number };
@@ -290,13 +297,13 @@ function getServiceAccountCredentials(): ServiceAccountCredentials {
     return cachedCredentials;
   }
   if (!env.GCAL_CREDENTIALS_JSON_BASE64) {
-    throw new Error('GCAL_CREDENTIALS_JSON_BASE64 must be configured for calendar access');
+    throw new AppError('GCAL_CREDENTIALS_MISSING', 'GCAL_CREDENTIALS_JSON_BASE64 must be configured for calendar access');
   }
 
   const decoded = Buffer.from(env.GCAL_CREDENTIALS_JSON_BASE64, 'base64').toString('utf8');
   const parsed = JSON.parse(decoded) as Partial<ServiceAccountCredentials>;
   if (!parsed.client_email || !parsed.private_key) {
-    throw new Error('GCAL credentials must include client_email and private_key');
+    throw new AppError('GCAL_CREDENTIALS_INVALID', 'GCAL credentials must include client_email and private_key');
   }
 
   cachedCredentials = {

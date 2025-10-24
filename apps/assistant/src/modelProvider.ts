@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { env } from '@buildora/shared';
+import { env, AppError } from '@buildora/shared';
 
 export type ToolDefinition = {
   name: string;
@@ -51,7 +51,7 @@ export function createModel(): LanguageModel {
   const endpoint = 'https://api.openai.com/v1/chat/completions';
 
   if (!apiKey) {
-    throw new Error('OPENAI_API_KEY is required to run the assistant');
+    throw new AppError('OPENAI_API_KEY_MISSING', 'OPENAI_API_KEY is required to run the assistant');
   }
 
   return {
@@ -81,17 +81,20 @@ export function createModel(): LanguageModel {
       });
 
       const payload = await response.json().catch(() => {
-        throw new Error('Failed to parse response from OpenAI');
+        throw new AppError('OPENAI_PARSE_ERROR', 'Failed to parse response from OpenAI');
       });
 
       if (!response.ok) {
         const message = payload?.error?.message ?? response.statusText;
-        throw new Error(`OpenAI request failed: ${message}`);
+        throw new AppError('OPENAI_REQUEST_FAILED', `OpenAI request failed: ${message}`, {
+          status: response.status,
+          details: payload?.error
+        });
       }
 
       const choice = payload?.choices?.[0];
       if (!choice || !choice.message) {
-        throw new Error('OpenAI response missing choices');
+        throw new AppError('OPENAI_MISSING_CHOICES', 'OpenAI response missing choices');
       }
 
       const assistantMessage = mapAssistantMessage(choice.message);

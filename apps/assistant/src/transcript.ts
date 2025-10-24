@@ -1,4 +1,4 @@
-import { Prisma, prisma } from '@buildora/shared';
+import { Prisma, prisma, AppError } from '@buildora/shared';
 
 export type TranscriptMessage = {
   id: string;
@@ -92,7 +92,7 @@ export async function loadConversationContext(
   });
 
   if (!conversation || !conversation.Lead) {
-    throw new Error(`Conversation ${conversationId} not found`);
+    throw new AppError('CONVERSATION_NOT_FOUND', `Conversation ${conversationId} not found`, { status: 404 });
   }
 
   const messages = await prisma.message.findMany({

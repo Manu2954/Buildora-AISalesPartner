@@ -10,7 +10,8 @@ import {
   metricsSnapshot,
   errorRate,
   prisma,
-  Prisma
+  Prisma,
+  AppError
 } from '@buildora/shared';
 
 import { createJourneyWorker } from './journeyWorker.js';
@@ -83,13 +84,13 @@ const server = http.createServer(async (req: IncomingMessage, res: ServerRespons
 
   if (url.pathname === '/api/conversations' && req.method === 'GET') {
     setCors(res);
-    return void handleConversationsList(res);
+    return void safeExecute(res, () => handleConversationsList(res));
   }
 
   const conversationDetailMatch = url.pathname.match(/^\/api\/conversations\/([^\/]+)$/);
   if (conversationDetailMatch && req.method === 'GET') {
     setCors(res);
-    return void handleConversationDetail(conversationDetailMatch[1], res);
+    return void safeExecute(res, () => handleConversationDetail(conversationDetailMatch[1], res));
   }
 
   const suppressMatch = url.pathname.match(/^\/api\/conversations\/([^\/]+)\/suppress$/);
@@ -101,7 +102,7 @@ const server = http.createServer(async (req: IncomingMessage, res: ServerRespons
       return null;
     });
     if (!body) return;
-    return void handleSuppressionToggle(suppressMatch[1], body, res);
+    return void safeExecute(res, () => handleSuppressionToggle(suppressMatch[1], body, res));
   }
 
   res.writeHead(200, { 'Content-Type': 'text/plain' });
@@ -237,8 +238,7 @@ async function handleConversationDetail(conversationId: string, res: ServerRespo
   });
 
   if (!conversation || !conversation.Lead) {
-    sendJson(res, 404, { error: 'conversation_not_found' });
-    return;
+    throw new AppError('CONVERSATION_NOT_FOUND', 'Conversation not found', { status: 404 });
   }
 
   const messages = await prisma.message.findMany({
@@ -272,8 +272,7 @@ async function handleSuppressionToggle(
   });
 
   if (!conversation) {
-    sendJson(res, 404, { error: 'conversation_not_found' });
-    return;
+    throw new AppError('CONVERSATION_NOT_FOUND', 'Conversation not found', { status: 404 });
   }
 
   const suppress = Boolean(body.suppress);
@@ -317,4 +316,20 @@ async function handleSuppressionToggle(
     state: journey.state,
     nextActionAt: journey.nextActionAt
   });
+}
+
+async function safeExecute(res: ServerResponse, fn: () => Promise<void>) {
+  try {
+    await fn();
+  } catch (error) {
+    if (error instanceof AppError) {
+      if (error.code !== 'CONVERSATION_NOT_FOUND') {
+        createLogger({ component: 'assistant-api' }).error({ error: error.message, code: error.code }, 'API error');
+      }
+      sendJson(res, error.status ?? 500, { error: error.code, message: error.message });
+      return;
+    }
+    createLogger({ component: 'assistant-api' }).error({ error }, 'Unhandled API error');
+    sendJson(res, 500, { error: 'INTERNAL_ERROR' });
+  }
 }

@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import process from 'node:process';
 
-import { env } from '@buildora/shared';
+import { env, httpRequest } from '@buildora/shared';
 
 const GRAPH_API_VERSION = 'v17.0';
 const BASE_URL = `https://graph.facebook.com/${GRAPH_API_VERSION}`;
@@ -75,21 +75,19 @@ async function listTemplates(): Promise<void> {
   const url = new URL(`${BASE_URL}/${env.WA_WHATSAPP_BUSINESS_ACCOUNT_ID}/message_templates`);
   url.searchParams.set('limit', '50');
 
-  const response = await fetch(url, {
+  const payload = await httpRequest<{ data?: any[]; error?: unknown }>(url.toString(), {
     headers: authHeaders()
+  }).catch((error) => {
+    console.error('Failed to fetch templates:', error);
+    process.exit(1);
   });
 
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    console.error('Failed to fetch templates:', JSON.stringify(payload, null, 2));
+  if (!payload || !Array.isArray(payload.data)) {
+    console.log('No templates found.');
     process.exit(1);
   }
 
-  const templates = payload?.data ?? [];
-  if (templates.length === 0) {
-    console.log('No templates found.');
-    return;
-  }
+  const templates = payload.data;
 
   for (const template of templates) {
     console.log(
@@ -125,26 +123,33 @@ async function pushTemplates(files: string[]): Promise<void> {
     }
     body.set('components', JSON.stringify(payload.components ?? []));
 
-    const response = await fetch(
-      `${BASE_URL}/${env.WA_WHATSAPP_BUSINESS_ACCOUNT_ID}/message_templates`,
-      {
-        method: 'POST',
-        headers: {
-          ...authHeaders(),
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body
-      }
-    );
+    const result = await httpRequest<{
+      status?: string;
+      id?: string;
+      error?: { error_subcode?: number; message?: string };
+    }>(`${BASE_URL}/${env.WA_WHATSAPP_BUSINESS_ACCOUNT_ID}/message_templates`, {
+      method: 'POST',
+      headers: {
+        ...authHeaders(),
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body
+    }).catch((error) => {
+      console.error(`✖ Failed to register ${payload.name}:`, error);
+      return null;
+    });
 
-    const result = await response.json().catch(() => ({}));
-    if (response.ok) {
+    if (!result) {
+      continue;
+    }
+
+    if (!result.error) {
       console.log(
         `✔ Registered template ${payload.name} (${basename(file)}) status=${result.status ?? 'submitted'} id=${result.id ?? 'pending'}`
       );
     } else if (
-      result?.error?.error_subcode === 2018001 ||
-      /(already exists|already has a template)/i.test(result?.error?.message ?? '')
+      result.error.error_subcode === 2018001 ||
+      /(already exists|already has a template)/i.test(result.error.message ?? '')
     ) {
       console.warn(`ℹ Template ${payload.name} already exists. Review status via list command.`);
     } else {

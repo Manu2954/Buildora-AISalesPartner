@@ -4,6 +4,7 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import PDFDocument from 'pdfkit';
 
 import { env } from './env.js';
+import { AppError } from './errors.js';
 
 type GenerateQuotePdfInput = {
   leadId: string;
@@ -89,10 +90,10 @@ function getS3Client(): S3Client {
     return s3Client;
   }
   if (!env.S3_BUCKET) {
-    throw new Error('S3_BUCKET must be configured to store quote PDFs');
+    throw new AppError('S3_BUCKET_MISSING', 'S3_BUCKET must be configured to store quote PDFs');
   }
   if (!env.S3_ACCESS_KEY_ID || !env.S3_SECRET_ACCESS_KEY) {
-    throw new Error('S3 access key and secret key must be configured');
+    throw new AppError('S3_CREDENTIALS_MISSING', 'S3 access key and secret key must be configured');
   }
 
   s3Client = new S3Client({

@@ -1,3 +1,5 @@
+import { httpRequest, AppError } from '@buildora/shared';
+
 type ToolSchema = {
   input: Record<string, unknown>;
   output: Record<string, unknown>;
@@ -24,7 +26,7 @@ export class McpClient {
     if (!this.toolListPromise) {
       this.toolListPromise = this.fetchJson<{ tools: string[] }>('/schemas').then((payload) => {
         if (!payload.tools || !Array.isArray(payload.tools)) {
-          throw new Error('Invalid response when listing tools');
+          throw new AppError('MCP_TOOL_LIST_INVALID', 'Invalid response when listing tools');
         }
         return payload.tools;
       });
@@ -70,50 +72,34 @@ export class McpClient {
     toolName: string,
     input: TInput
   ): Promise<TResult> {
-    const response = await fetch(this.buildUrl(`/tools/${encodeURIComponent(toolName)}`), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Actor': this.actor
-      },
-      body: JSON.stringify({ actor: this.actor, input })
-    });
+    const payload = await httpRequest<{ result: TResult; error?: { message: string } }>(
+      this.buildUrl(`/tools/${encodeURIComponent(toolName)}`),
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Actor': this.actor
+        },
+        body: JSON.stringify({ actor: this.actor, input })
+      }
+    );
 
-    const payload = await response.json().catch(() => {
-      throw new Error(`Failed to parse MCP response for tool ${toolName}`);
-    });
-
-    if (!response.ok) {
-      const message = payload?.error?.message ?? response.statusText;
-      throw new Error(`MCP tool ${toolName} failed: ${message}`);
-    }
     if (payload?.error) {
       const message = payload.error.message ?? 'Unknown error';
-      throw new Error(`MCP tool ${toolName} returned error: ${message}`);
+      throw new AppError('MCP_TOOL_ERROR', message);
     }
     if (!('result' in payload)) {
-      throw new Error(`MCP tool ${toolName} returned malformed payload`);
+      throw new AppError('MCP_MALFORMED_RESPONSE', `MCP tool ${toolName} returned malformed payload`);
     }
     return payload.result as TResult;
   }
 
   private async fetchJson<T>(path: string): Promise<T> {
-    const response = await fetch(this.buildUrl(path), {
+    return httpRequest<T>(this.buildUrl(path), {
       headers: {
         Accept: 'application/json'
       }
     });
-
-    const payload = await response.json().catch(() => {
-      throw new Error(`Failed to parse MCP response for ${path}`);
-    });
-
-    if (!response.ok) {
-      const message = payload?.error?.message ?? response.statusText;
-      throw new Error(`MCP request ${path} failed: ${message}`);
-    }
-
-    return payload as T;
   }
 
   private buildUrl(path: string): string {

@@ -136,6 +136,13 @@ async function handleInboundMessage(payload: InboundPayload): Promise<string> {
   const conversation = await resolveConversation(lead.id, occurredAt);
   const log = createLogger({ component: 'wa-webhook', leadId: lead.id, conversationId: conversation.id });
 
+  const existing = await prisma.message.findUnique({ where: { id: message.id } });
+  if (existing) {
+    log.info({ messageId: existing.id }, 'duplicate webhook received, ignoring');
+    messagesInboundTotal.inc({ channel: 'whatsapp' });
+    return existing.id;
+  }
+
   const messageMeta = {
     ...message,
     phone_number_id: payload.phoneNumberId ?? null

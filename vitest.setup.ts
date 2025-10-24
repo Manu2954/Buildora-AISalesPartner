@@ -41,7 +41,6 @@ const serviceAccount = {
 process.env.NODE_ENV = process.env.NODE_ENV ?? 'test';
 process.env.TIMEZONE = process.env.TIMEZONE ?? 'Asia/Kolkata';
 process.env.WA_TOKEN = process.env.WA_TOKEN ?? 'test-wa-token';
-process.env.WA_PHONE_NUMBER_ID = process.env.WA_PHONE_NUMBER_ID ?? '123456789';
 process.env.WEBHOOK_SECRET = process.env.WEBHOOK_SECRET ?? 'sha256:changeme';
 process.env.GCAL_CALENDAR_ID = process.env.GCAL_CALENDAR_ID ?? 'calendar-id';
 process.env.GCAL_CREDENTIALS_JSON_BASE64 =
@@ -59,5 +58,13 @@ process.env.WA_TEMPLATE_INTRO = process.env.WA_TEMPLATE_INTRO ?? 'buildora_intro
 process.env.WA_TEMPLATE_NUDGE1 = process.env.WA_TEMPLATE_NUDGE1 ?? 'buildora_nudge1';
 process.env.WA_TEMPLATE_NUDGE2 = process.env.WA_TEMPLATE_NUDGE2 ?? 'buildora_nudge2';
 process.env.WA_TEMPLATE_LANGUAGE = process.env.WA_TEMPLATE_LANGUAGE ?? 'en';
+process.env.TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID ?? 'ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+process.env.TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN ?? 'test-twilio-token';
+process.env.TWILIO_WHATSAPP_FROM = process.env.TWILIO_WHATSAPP_FROM ?? '+14155238886';
+process.env.TWILIO_TEMPLATE_MAP =
+  process.env.TWILIO_TEMPLATE_MAP ??
+  JSON.stringify({
+    'order_update': { contentSid: 'HX1234567890ABCDEF1234567890ABCDEF' }
+  });
 
 export {};

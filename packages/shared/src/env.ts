@@ -3,6 +3,8 @@ import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { z } from 'zod';
 
+import { AppError } from './errors.js';
+
 const ENV_SEARCH_FILES = ['.env.local', '.env'];
 
 const discoveredFiles = discoverEnvFiles();
@@ -32,7 +34,6 @@ const envSchema = z.object({
       },
       z.string().default('Asia/Kolkata')
     ),
-  WA_PHONE_NUMBER_ID: z.preprocess(preprocessOptional, z.string().optional()),
   WA_TOKEN: z.preprocess(preprocessOptional, z.string().optional()),
   WA_WHATSAPP_BUSINESS_ACCOUNT_ID: z.preprocess(preprocessOptional, z.string().optional()),
   WA_VERIFY_TOKEN: z.preprocess(preprocessOptional, z.string().optional()),
@@ -51,6 +52,11 @@ const envSchema = z.object({
   MCP_SERVER_URL: z.preprocess(preprocessOptional, z.string().url().default('http://localhost:3005')),
   OPENAI_API_KEY: z.preprocess(preprocessOptional, z.string()),
   OPENAI_MODEL: z.preprocess(preprocessOptional, z.string().default('gpt-4o-mini')),
+  TWILIO_ACCOUNT_SID: z.preprocess(preprocessOptional, z.string().optional()),
+  TWILIO_AUTH_TOKEN: z.preprocess(preprocessOptional, z.string().optional()),
+  TWILIO_WHATSAPP_FROM: z.preprocess(preprocessOptional, z.string().optional()),
+  TWILIO_MESSAGING_SERVICE_SID: z.preprocess(preprocessOptional, z.string().optional()),
+  TWILIO_TEMPLATE_MAP: z.preprocess(preprocessOptional, z.string().optional()),
   GCAL_CREDENTIALS_JSON_BASE64: z.preprocess(preprocessOptional, z.string().optional()),
   GCAL_CALENDAR_ID: z.preprocess(preprocessOptional, z.string()),
   S3_ENDPOINT: z.preprocess(preprocessOptional, z.string().url().optional()),
@@ -66,7 +72,7 @@ if (!parsed.success) {
     Object.keys(formatted).length > 0
       ? JSON.stringify(formatted, null, 2)
       : parsed.error.message;
-  throw new Error(`Invalid environment configuration:\n${message}`);
+  throw new AppError('ENV_INVALID', `Invalid environment configuration:\n${message}`);
 }
 
 export const env = Object.freeze(parsed.data);

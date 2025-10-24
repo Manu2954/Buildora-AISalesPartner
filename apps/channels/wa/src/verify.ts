@@ -1,13 +1,8 @@
-import { env, verifyMetaSignature } from '@buildora/shared';
+import { env, verifyMetaSignature, AppError } from '@buildora/shared';
 
-export class VerificationError extends Error {
-  status: number;
-  code: string;
-
+export class VerificationError extends AppError {
   constructor(message: string, status = 400, code = 'VERIFICATION_FAILED') {
-    super(message);
-    this.status = status;
-    this.code = code;
+    super(code, message, { status });
   }
 }
 

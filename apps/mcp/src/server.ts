@@ -15,7 +15,8 @@ import {
   replyWA,
   offerSlots,
   bookSlot,
-  generateQuotePdf
+  generateQuotePdf,
+  AppError
 } from '@buildora/shared';
 
 type JsonSchema = {
@@ -622,7 +623,7 @@ async function loadSchema(name: string): Promise<JsonSchema> {
   const raw = await readFile(filePath, 'utf8');
   const schema = JSON.parse(raw) as JsonSchema;
   if (!schema.input || !schema.output) {
-    throw new Error(`Schema ${name} must contain input and output definitions`);
+    throw new AppError('SCHEMA_INVALID', `Schema ${name} must contain input and output definitions`);
   }
   return schema;
 }
